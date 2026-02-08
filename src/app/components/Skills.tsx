@@ -8,12 +8,12 @@ export const SKILL_CATEGORIES = [
       title: 'Técnicas de Testes',
       icon: '🛠️',
       skills: [
-        {name: 'Análise de Requisitos', level: 'Avançado' },
-        { name: 'Análise de Valor Limite', level: 'Avançado' },
-        { name: 'Testes Exploratórios', level: 'Avançado' },
-        { name: 'Testes E2E', level: 'Avançado'},
-        { name: 'BDD', level: 'Avançado'},
-        { name: 'Heurísticas de Teste', level: 'Avançado'},
+        {name: 'Análise de Requisitos', level: 'Advanced' },
+        { name: 'Análise de Valor Limite', level: 'Advanced' },
+        { name: 'Testes Exploratórios', level: 'Advanced' },
+        { name: 'Testes E2E', level: 'Advanced'},
+        { name: 'BDD', level: 'Advanced'},
+        { name: 'Heurísticas de Teste', level: 'Advanced'},
       ]
     },
   
@@ -34,8 +34,7 @@ export const SKILL_CATEGORIES = [
       skills: [
         { name: 'JUnit', level: 'Expert' },
         { name: 'Playwright', level: 'Studying' },
-        { name: 'pytest', level: 'Avançado' },
-        { name: 'Mockito', level: 'Intermediário' },
+        { name: 'Mockito', level: 'Intermediary' },
         { name: 'Appium', level: 'Studying' },
       ],
     },
@@ -45,28 +44,28 @@ export const SKILL_CATEGORIES = [
       skills: [
         { name: 'REST Assured', level: 'Expert' },
         { name: 'Postman', level: 'Expert' },
-        { name: 'Insomnia', level: 'Intermediário' },
-        { name: 'Cucumber', level: 'Avançado' }
+        { name: 'Insomnia', level: 'Intermediary' },
+        { name: 'Cucumber', level: 'Advanced' }
       ],
     },
     {
       title: 'Testes Não Funcionais',
       icon: '📊',
       skills: [
-        { name: 'JMeter', level: 'Intermediário' },
+        { name: 'JMeter', level: 'Intermediary' },
         { name: 'OWASP ZAP', level: 'Studying' },
-        { name: 'Security Testing', level: 'Intermediário' },
+        { name: 'Security Testing', level: 'Intermediary' },
       ],
     },
     {
       title: 'CI/CD & DevOps',
       icon: '🚀',
       skills: [
-        { name: 'GitHub', level: 'Avançado' },
+        { name: 'GitHub', level: 'Advanced' },
         { name: 'Docker', level: 'Studying' },
         { name: 'Sonarqube', level: 'Studying'},
-        { name: 'Git', level: 'Avançado' },
-        { name: 'Maven/Gradle', level: 'Avançado'},
+        { name: 'Git', level: 'Advanced' },
+        { name: 'Maven/Gradle', level: 'Advanced'},
       ],
     },
   ];
@@ -77,9 +76,9 @@ export function Skills() {
     switch (level) {
       case 'Expert':
         return 'bg-green-100 text-green-700';
-      case 'Avançado':
+      case 'Advanced':
         return 'bg-blue-100 text-blue-700';
-      case 'Intermediário':
+      case 'Intermediary':
         return 'bg-yellow-100 text-yellow-700';
       default:
         return 'bg-gray-100 text-gray-700';

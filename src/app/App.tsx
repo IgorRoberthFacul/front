@@ -18,6 +18,8 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!SHEET_URL) return;
+
     Papa.parse(`${SHEET_URL}&t=${new Date().getTime()}`, {
       download: true,
       header: true,
@@ -51,6 +53,7 @@ export default function App() {
     const pageWidth = doc.internal.pageSize.width;
     const contentWidth = pageWidth - (margin * 2);
 
+    // Função para gerenciar quebras de página automáticas
     const checkPageBreak = (heightNeeded: number) => {
       if (yPos + heightNeeded >= pageHeight - margin) {
         doc.addPage();
@@ -58,116 +61,110 @@ export default function App() {
       }
     };
 
+    // Função otimizada (sem erros do Sonar) para adicionar texto
     const addText = (text: string, fontSize: number, isBold: boolean = false, color: string | number = 0) => {
-        doc.setFontSize(fontSize);
-        doc.setFont("helvetica", isBold ? "bold" : "normal");
-        if (typeof color === 'string') {
-            doc.setTextColor(color);
-        } else {
-            doc.setTextColor(color);
-        }
-        
-        const splitText = doc.splitTextToSize(text, contentWidth);
-        const height = splitText.length * (fontSize / 2.5); // Approximation
-        
-        checkPageBreak(height);
-        doc.text(splitText, margin, yPos);
-        yPos += height + 2;
+      doc.setFontSize(fontSize);
+      doc.setFont("helvetica", isBold ? "bold" : "normal");
+      doc.setTextColor(color as any); 
+      
+      const splitText = doc.splitTextToSize(text, contentWidth);
+      const lineHeight = fontSize * 0.5; // Ajuste de entrelinha proporcional
+      const height = splitText.length * lineHeight;
+      
+      checkPageBreak(height);
+      doc.text(splitText, margin, yPos);
+      yPos += height + 2;
     };
 
-    // --- Cabeçalho do PDF ---
+    // --- Cabeçalho ---
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
+    doc.setTextColor(0, 51, 102); // Azul Marinho profissional
     doc.text("IGOR ROBERTH", margin, yPos);
     yPos += 8;
     
     doc.setFontSize(14);
-    doc.setTextColor(100); // Cinza
+    doc.setTextColor(100); 
     doc.text("QA Automation Engineer", margin, yPos);
     yPos += 6;
     
-    doc.setDrawColor(0, 0, 255); // Linha azul
+    doc.setDrawColor(0, 0, 255); 
     doc.line(margin, yPos, pageWidth - margin, yPos); 
     yPos += 10;
 
-    // --- Seção: Resumo ---
+    // --- Resumo ---
     addText("RESUMO PROFISSIONAL", 12, true, 0);
-    const resumo = `Profissional de Qualidade de Software (QA) com mais de 4 anos de experiência em projetos ágeis usando o framework Scrum. Tenho habilidades em analisar requisitos, identificar riscos e criar casos de uso, aplicando técnicas de testes ao longo do desenvolvimento para garantir entregas de alta qualidade.`;
-    addText(resumo, 10, false, 0);
+    const resumo = `Profissional de Qualidade de Software (QA) com mais de 4 anos de experiência em projetos ágeis usando o framework Scrum. Especialista em automação de testes, análise de requisitos e garantia de qualidade em aplicações complexas.`;
+    addText(resumo, 10, false, 50);
     yPos += 5;
 
-    // --- Seção: Habilidades ---
+    // --- Habilidades (Dinâmico) ---
     addText("HABILIDADES TÉCNICAS", 12, true, 0);
-    
     SKILL_CATEGORIES.forEach(cat => {
         const skillsList = cat.skills.map(s => s.name).join(", ");
-        const line = `• ${cat.title}: ${skillsList}`;
-        addText(line, 10, false, 0);
+        addText(`• ${cat.title}: ${skillsList}`, 10, false, 50);
     });
     yPos += 5;
 
-    // --- Seção: Experiência ---
+    // --- Experiências (Dinâmico do CSV) ---
     addText("EXPERIÊNCIA PROFISSIONAL", 12, true, 0);
-    
     experiences.forEach(exp => {
-        checkPageBreak(20); // Minimal space for title
+        checkPageBreak(15);
         
-        // Title and Company
+        // Título e Período
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(0);
         doc.text(exp.title, margin, yPos);
         
-        const dateText = exp.period;
-        const dateWidth = doc.getTextWidth(dateText);
+        const dateWidth = doc.getTextWidth(exp.period);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
-        doc.text(dateText, pageWidth - margin - dateWidth, yPos);
+        doc.text(exp.period, pageWidth - margin - dateWidth, yPos);
         yPos += 5;
 
+        // Empresa e Localização
         doc.setFont("helvetica", "bold");
         doc.setTextColor(80);
         doc.text(`${exp.worker} ${exp.location ? `- ${exp.location}` : ''}`, margin, yPos);
         yPos += 6;
 
-        // Description
-        if (exp.description) {
-            addText(exp.description, 10, false, 50);
-        }
+        // Conteúdo
+        addText(exp.description, 10, false, 50);
 
-        // Responsibilities
-        if (exp.responsibilities && exp.responsibilities.length > 0) {
-            yPos += 2;
+        if (exp.responsibilities?.length > 0) {
             addText("Principais Responsabilidades:", 10, true, 0);
-            exp.responsibilities.forEach(resp => {
-                addText(`• ${resp}`, 10, false, 50);
-            });
+            exp.responsibilities.forEach(resp => addText(`• ${resp}`, 10, false, 60));
         }
 
-        // Achievements
-        if (exp.achievements && exp.achievements.length > 0) {
-            yPos += 2;
+        if (exp.achievements?.length > 0) {
+            yPos += 1;
             addText("Principais Conquistas:", 10, true, 0);
-            exp.achievements.forEach(ach => {
-                addText(`• ${ach}`, 10, false, 50);
-            });
+            exp.achievements.forEach(ach => addText(`• ${ach}`, 10, false, 60));
         }
-        
         yPos += 5; 
     });
 
-    // Rodapé
-    const footerText = `Gerado em: ${new Date().toLocaleDateString('pt-BR')}`;
+    // --- Rodapé ---
+    const footerText = `Página 1 | Gerado em: ${new Date().toLocaleDateString('pt-BR')}`;
     doc.setFontSize(8);
     doc.setTextColor(150);
     doc.text(footerText, margin, pageHeight - 10);
 
-    // Comando final para baixar
-    doc.save("Igor_Roberth_CV.pdf");
+    // --- Lógica de Download Robusta (Correção para Xiaomi/Samsung Mobile) ---
+    const pdfBlob = doc.output('blob');
+    const url = URL.createObjectURL(pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Igor_Roberth_QA_CV.pdf');
+    document.body.appendChild(link);
+    link.click();
     
-    toast.success('Currículo PDF gerado com sucesso!', {
-      description: 'O arquivo foi salvo na sua pasta de downloads.',
-    });
+    // Cleanup de memória
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    
+    toast.success('Currículo PDF gerado com sucesso!');
   };
 
   return (
