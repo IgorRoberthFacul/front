@@ -74,7 +74,7 @@ export function Hero() {
               <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
               <div className="relative w-full h-full rounded-full overflow-hidden border-8 border-white shadow-2xl">
                 <ImageWithFallback
-                  src="/public/eu.png"
+                  src="/eu.png"
                   alt="Igor Roberth"
                   className="w-full h-full object-cover"
                 />
