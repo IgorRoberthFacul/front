@@ -11,16 +11,29 @@ import { Footer } from './components/Footer';
 import { toast } from 'sonner';
 import { Toaster } from './components/ui/sonner';
 
-const SHEET_URL = (import.meta as any).env.VITE_PUBLIC_SHEET_URL || "";
-
 export default function App() {
   const [experiences, setExperiences] = useState<ExperienceData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // useEffect configurado para usar a API Proxy (Oculta a URL no Network Tab)
   useEffect(() => {
-    if (!SHEET_URL) return;
+    // 1. Criamos a variável 'env' extraindo do import.meta
+    const env = (import.meta as any).env;
 
-    Papa.parse(`${SHEET_URL}&t=${new Date().getTime()}`, {
+    // 2. Detecta se o ambiente é desenvolvimento (local)
+    const isLocal = env.DEV;
+    
+    // 3. Agora o 'env' existe e pode ser usado aqui com segurança
+    const dataSource = isLocal 
+      ? env.VITE_PUBLIC_SHEET_URL 
+      : '/api/data';
+
+    if (!dataSource) {
+      console.warn("Aguardando configuração da URL de dados...");
+      return;
+    }
+
+    Papa.parse(dataSource, {
       download: true,
       header: true,
       skipEmptyLines: true,
@@ -41,6 +54,12 @@ export default function App() {
 
         setExperiences(data);
         setLoading(false);
+      },
+      error: (error) => {
+        console.error("Erro no carregamento:", error);
+        if (!isLocal) {
+           console.log("Tentando fallback para URL direta...");
+        }
       }
     });
   }, []);
@@ -53,7 +72,6 @@ export default function App() {
     const pageWidth = doc.internal.pageSize.width;
     const contentWidth = pageWidth - (margin * 2);
 
-    // Função para gerenciar quebras de página automáticas
     const checkPageBreak = (heightNeeded: number) => {
       if (yPos + heightNeeded >= pageHeight - margin) {
         doc.addPage();
@@ -61,14 +79,13 @@ export default function App() {
       }
     };
 
-    // Função otimizada (sem erros do Sonar) para adicionar texto
     const addText = (text: string, fontSize: number, isBold: boolean = false, color: string | number = 0) => {
       doc.setFontSize(fontSize);
       doc.setFont("helvetica", isBold ? "bold" : "normal");
       doc.setTextColor(color as any); 
       
       const splitText = doc.splitTextToSize(text, contentWidth);
-      const lineHeight = fontSize * 0.5; // Ajuste de entrelinha proporcional
+      const lineHeight = fontSize * 0.5; 
       const height = splitText.length * lineHeight;
       
       checkPageBreak(height);
@@ -79,8 +96,8 @@ export default function App() {
     // --- Cabeçalho ---
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.setTextColor(0, 51, 102); // Azul Marinho profissional
-    doc.text("IGOR ROBERTH", margin, yPos);
+    doc.setTextColor(0, 51, 102); 
+    doc.text("IGOR ROBERTH MOURA FABIANO", margin, yPos);
     yPos += 8;
     
     doc.setFontSize(14);
@@ -94,11 +111,11 @@ export default function App() {
 
     // --- Resumo ---
     addText("RESUMO PROFISSIONAL", 12, true, 0);
-    const resumo = `Profissional de Qualidade de Software (QA) com mais de 4 anos de experiência em projetos ágeis usando o framework Scrum. Especialista em automação de testes, análise de requisitos e garantia de qualidade em aplicações complexas.`;
+    const resumo = `Profissional de Qualidade de Software (QA) com mais de 4 anos de experiência em projetos ágeis usando o framework Scrum. Especialista em automação de testes e análise de requisitos para garantir entregas de alta qualidade.`;
     addText(resumo, 10, false, 50);
     yPos += 5;
 
-    // --- Habilidades (Dinâmico) ---
+    // --- Habilidades ---
     addText("HABILIDADES TÉCNICAS", 12, true, 0);
     SKILL_CATEGORIES.forEach(cat => {
         const skillsList = cat.skills.map(s => s.name).join(", ");
@@ -106,12 +123,11 @@ export default function App() {
     });
     yPos += 5;
 
-    // --- Experiências (Dinâmico do CSV) ---
+    // --- Experiências ---
     addText("EXPERIÊNCIA PROFISSIONAL", 12, true, 0);
     experiences.forEach(exp => {
         checkPageBreak(15);
         
-        // Título e Período
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(0);
@@ -123,13 +139,11 @@ export default function App() {
         doc.text(exp.period, pageWidth - margin - dateWidth, yPos);
         yPos += 5;
 
-        // Empresa e Localização
         doc.setFont("helvetica", "bold");
         doc.setTextColor(80);
         doc.text(`${exp.worker} ${exp.location ? `- ${exp.location}` : ''}`, margin, yPos);
         yPos += 6;
 
-        // Conteúdo
         addText(exp.description, 10, false, 50);
 
         if (exp.responsibilities?.length > 0) {
@@ -145,13 +159,12 @@ export default function App() {
         yPos += 5; 
     });
 
-    // --- Rodapé ---
     const footerText = `Página 1 | Gerado em: ${new Date().toLocaleDateString('pt-BR')}`;
     doc.setFontSize(8);
     doc.setTextColor(150);
     doc.text(footerText, margin, pageHeight - 10);
 
-    // --- Lógica de Download Robusta (Correção para Xiaomi/Samsung Mobile) ---
+    // Lógica de Download Robusta (Blob) para compatibilidade Mobile
     const pdfBlob = doc.output('blob');
     const url = URL.createObjectURL(pdfBlob);
     const link = document.createElement('a');
@@ -160,7 +173,6 @@ export default function App() {
     document.body.appendChild(link);
     link.click();
     
-    // Cleanup de memória
     document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url), 100);
     
